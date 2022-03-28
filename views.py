@@ -13,17 +13,17 @@ class About:
 
 class Hotels:
     def __call__(self, request):
-        return '200 OK', 'about'
+        return '200 OK', 'hotels'
 
 
 class Flights:
     def __call__(self, request):
-        return '200 OK', 'about'
+        return '200 OK', 'flights'
 
 
 class Carrental:
     def __call__(self, request):
-        return '200 OK', 'about'
+        return '200 OK', 'carrental'
 
 
 class PageNotFound404:

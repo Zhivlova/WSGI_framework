@@ -19,3 +19,4 @@ routes = {
     '/flights/': Flights(),
     '/carrental/': Carrental(),
 }
+
