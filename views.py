@@ -8,22 +8,22 @@ class Index:
 
 class About:
     def __call__(self, request):
-        return '200 OK', 'about'
+        return '200 OK', render('about 2.html', date=request.get('date', None))
 
 
 class Hotels:
     def __call__(self, request):
-        return '200 OK', 'hotels'
+        return '200 OK', render('hotels 2.html', date=request.get('date', None))
 
 
 class Flights:
     def __call__(self, request):
-        return '200 OK', 'flights'
+        return '200 OK', render('flights 2.html', date=request.get('date', None))
 
 
 class Carrental:
     def __call__(self, request):
-        return '200 OK', 'carrental'
+        return '200 OK', render('carrental 2.html', date=request.get('date', None))
 
 
 class PageNotFound404:
