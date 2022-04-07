@@ -1,0 +1,16 @@
+<a href="/">назад</a>
+
+    <h1>Список категорий</h1>
+    <ul>
+
+        {% for item in objects_list %}
+        <li>
+            {{item.name}} <span>Количество авиаперелетов: {{item.flight_count()}}</span>
+        </li>
+        {% endfor %}
+    </ul>
+
+	<div>
+		<li><a href="/flights-list/">Список авиаперелетов</a></li>
+		<li><a href="/create-flight/">Создать авиаперелет</a></li>
+	</div>

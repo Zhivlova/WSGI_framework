@@ -1,0 +1,16 @@
+<a href="/">назад</a>
+
+    <h1>Список категорий</h1>
+    <ul>
+
+        {% for item in objects_list %}
+        <li>
+            {{item.name}} <span>Количество автомобилей: {{item.carrental_count()}}</span>
+        </li>
+        {% endfor %}
+    </ul>
+
+	<div>
+		<li><a href="/carrentals-list/">Список автомобилей</a></li>
+		<li><a href="/create-carrental/">Создать автомобиль</a></li>
+	</div>

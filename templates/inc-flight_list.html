@@ -1,0 +1,17 @@
+<div>
+        <a href="/">назад на главную</a>
+    </div>
+
+    <br>
+    <br>
+
+    <div>
+        <a href="/create-flight/?id={{id}}">Создать новый авиаперелет</a>
+        <br>
+        <h1>Список авиаперелетов для категории "{{name}}"</h1>
+        {% for item in objects_list %}
+        <li>
+            {{item.name}} <span><a href="/copy-flight/?name={{item.name}}">скопировать</a></span>
+        </li>
+        {% endfor %}
+    </div>
