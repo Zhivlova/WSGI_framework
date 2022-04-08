@@ -1,48 +1,62 @@
 from datetime import date
 from framework.templator import render
 from patterns.сreational_patterns import Engine, Logger
+from patterns.structural_patterns import AppRoute, Debug
 
 site = Engine()
 logger = Logger('main')
 
+routes = {}
 
 # контроллер - главная страница
+@AppRoute(routes=routes, url='/')
 class Index:
+    @Debug(name='Index')
     def __call__(self, request):
         return '200 OK', render('index.html', objects_list=site.categories)
 
 
 # контроллер "О проекте"
+@AppRoute(routes=routes, url='/about/')
 class About:
+    @Debug(name='About')
     def __call__(self, request):
-        return '200 OK', render('about 2.html')
+        return '200 OK', render('about.html')
 
 
 # контроллер - Отели
+@AppRoute(routes=routes, url='/hotels/')
 class Hotels:
+    @Debug(name='Hotels')
     def __call__(self, request):
-        return '200 OK', render('hotels 2.html', date=date.today())
+        return '200 OK', render('hotels.html', date=date.today())
 
 
 # контроллер - Авиаперелеты
+@AppRoute(routes=routes, url='/flights/')
 class Flights:
+    @Debug(name='Flights')
     def __call__(self, request):
-        return '200 OK', render('flights 2.html', date=date.today())
+        return '200 OK', render('flights.html', date=date.today())
 
 
 # контроллер - Каршеринг
+@AppRoute(routes=routes, url='/carrental/')
 class Carrental:
+    @Debug(name='Carrental')
     def __call__(self, request):
         return '200 OK', render('carrental 2.html', date=date.today())
 
 
 # контроллер 404
 class PageNotFound404:
+    @Debug(name='NotFound404')
     def __call__(self, request):
         return '404 WHAT', '404 PAGE Not Found'
 
 
 # контроллер - список отелей
+@AppRoute(routes=routes, url='/hotels-list/')
 class HotelsList:
     def __call__(self, request):
         logger.log('Список отелей')
@@ -57,6 +71,7 @@ class HotelsList:
 
 
 # контроллер - список авиаперелетов
+@AppRoute(routes=routes, url='/flights-list/')
 class FlightsList:
     def __call__(self, request):
         logger.log('Список авиаперелетов')
@@ -71,6 +86,7 @@ class FlightsList:
 
 
 # контроллер - список автомобилей
+@AppRoute(routes=routes, url='/carrentals-list/')
 class CarrentalsList:
     def __call__(self, request):
         logger.log('Список автомобилей')
@@ -85,6 +101,7 @@ class CarrentalsList:
 
 
 # контроллер - создать отель
+@AppRoute(routes=routes, url='/create-hotel/')
 class CreateHotel:
     category_id = -1
 
@@ -121,6 +138,7 @@ class CreateHotel:
 
 
 # контроллер - создать авиаперелет
+@AppRoute(routes=routes, url='/create-flight/')
 class CreateFlight:
     category_id = -1
 
@@ -158,6 +176,7 @@ class CreateFlight:
 
 
 # контроллер - создать автомобиль
+@AppRoute(routes=routes, url='/create-carrental/')
 class CreateCarrental:
     category_id = -1
 
@@ -194,6 +213,7 @@ class CreateCarrental:
 
 
 # контроллер - создать категорию
+@AppRoute(routes=routes, url='/create-category/')
 class CreateCategory:
     def __call__(self, request):
 
@@ -223,6 +243,7 @@ class CreateCategory:
 
 
 # контроллер - список категорий
+@AppRoute(routes=routes, url='/category-list/')
 class CategoryList:
     def __call__(self, request):
         logger.log('Список категорий')
@@ -231,6 +252,7 @@ class CategoryList:
 
 
 # контроллер - копировать отель
+@AppRoute(routes=routes, url='/copy-hotel/')
 class CopyHotel:
     def __call__(self, request):
         request_params = request['request_params']
@@ -253,6 +275,7 @@ class CopyHotel:
 
 
 # контроллер - копировать авиаперелет
+@AppRoute(routes=routes, url='/copy-flight/')
 class CopyFlight:
     def __call__(self, request):
         request_params = request['request_params']
@@ -275,6 +298,7 @@ class CopyFlight:
 
 
 # контроллер - копировать автомобиль
+@AppRoute(routes=routes, url='/copy-carrental/')
 class CopyCarrental:
     def __call__(self, request):
         request_params = request['request_params']

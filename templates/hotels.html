@@ -9,20 +9,8 @@
 	{% include "inc-menu.html" %}
 {% endblock %}
 {% block body %}
-<div>
-		<a href="/create-category/">Создать новую категорию</a>
-	</div>
-	<div>
-		<h1>Список существующих категорий</h1>
-        {% for item in objects_list %}
-        <li>
-            {{item.name}} <span>Количество отелей: {{item.hotel_count()}}</span>
-			<a href="/hotels-list/?id={{item.id}}">Показать отели</a>
-        </li>
-        {% endfor %}
-	</div>
-	{% include "inc-hotels.html" %}
-{% endblock %}
+{% include "inc-hotels.html" %}
+ {% endblock %}
 {% block footer %}
 	{% include "inc-footer.html" %}
 {% endblock %}
