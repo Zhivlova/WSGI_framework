@@ -13,7 +13,7 @@
 		<a href="/create-category/">Создать новую категорию</a>
 	</div>
 	<div>
-		<h1>Список существующих категорий</h1>
+		<h4>Список существующих категорий</h4>
         {% for item in objects_list %}
         <li>
             {{item.name}} <span>Количество авиаперелетов: {{item.flight_count()}}</span>

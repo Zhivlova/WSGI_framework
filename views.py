@@ -1,12 +1,19 @@
 from datetime import date
 from framework.templator import render
-from patterns.сreational_patterns import Engine, Logger
+from patterns.сreational_patterns import Engine, Logger, MapperRegistry
 from patterns.structural_patterns import AppRoute, Debug
+from patterns.behavioral_patterns import EmailNotifier, SmsNotifier, ListView, CreateView, BaseSerializer
+from patterns.architectural_system_pattern import UnitOfWork
 
 site = Engine()
 logger = Logger('main')
+email_notifier = EmailNotifier()
+sms_notifier = SmsNotifier()
+UnitOfWork.new_current()
+UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
 
 routes = {}
+
 
 # контроллер - главная страница
 @AppRoute(routes=routes, url='/')
@@ -41,11 +48,11 @@ class Flights:
 
 
 # контроллер - Каршеринг
-@AppRoute(routes=routes, url='/carrental/')
+@AppRoute(routes=routes, url='/carrentals/')
 class Carrental:
-    @Debug(name='Carrental')
+    @Debug(name='Carrentals')
     def __call__(self, request):
-        return '200 OK', render('carrental 2.html', date=date.today())
+        return '200 OK', render('carrentals.html', date=date.today())
 
 
 # контроллер 404
@@ -63,7 +70,7 @@ class HotelsList:
         try:
             category = site.find_category_by_id(
                 int(request['request_params']['id']))
-            return '200 OK', render('hotel_list.html',
+            return '200 OK', render('hotels-list.html',
                                     objects_list=category.hotels,
                                     name=category.name, id=category.id)
         except KeyError:
@@ -78,7 +85,7 @@ class FlightsList:
         try:
             category = site.find_category_by_id(
                 int(request['request_params']['id']))
-            return '200 OK', render('flight_list.html',
+            return '200 OK', render('flights-list.html',
                                     objects_list=category.flights,
                                     name=category.name, id=category.id)
         except KeyError:
@@ -86,14 +93,14 @@ class FlightsList:
 
 
 # контроллер - список автомобилей
-@AppRoute(routes=routes, url='/carrentals-list/')
+@AppRoute(routes=routes, url='/carrental-list/')
 class CarrentalsList:
     def __call__(self, request):
         logger.log('Список автомобилей')
         try:
             category = site.find_category_by_id(
                 int(request['request_params']['id']))
-            return '200 OK', render('carrental_list.html',
+            return '200 OK', render('carrental-list.html',
                                     objects_list=category.carrentals,
                                     name=category.name, id=category.id)
         except KeyError:
@@ -118,9 +125,13 @@ class CreateHotel:
                 category = site.find_category_by_id(int(self.category_id))
 
                 hotel = site.create_hotel('record', name, category)
+
+                hotel.observers.append(email_notifier)
+                hotel.observers.append(sms_notifier)
+
                 site.hotels.append(hotel)
 
-            return '200 OK', render('hotel_list.html',
+            return '200 OK', render('hotels-list.html',
                                     objects_list=category.hotels,
                                     name=category.name,
                                     id=category.id)
@@ -130,7 +141,7 @@ class CreateHotel:
                 self.category_id = int(request['request_params']['id'])
                 category = site.find_category_by_id(int(self.category_id))
 
-                return '200 OK', render('create_hotel.html',
+                return '200 OK', render('create-hotel.html',
                                         name=category.name,
                                         id=category.id)
             except KeyError:
@@ -155,9 +166,13 @@ class CreateFlight:
                 category = site.find_category_by_id(int(self.category_id))
 
                 flight = site.create_flight('record', name, category)
+
+                flight.observers.append(email_notifier)
+                flight.observers.append(sms_notifier)
+
                 site.flights.append(flight)
 
-            return '200 OK', render('flight_list.html',
+            return '200 OK', render('flights-list.html',
                                     objects_list=category.flights,
                                     name=category.name,
                                     id=category.id)
@@ -172,7 +187,6 @@ class CreateFlight:
                                         id=category.id)
             except KeyError:
                 return '200 OK', 'No categories have been added yet'
-
 
 
 # контроллер - создать автомобиль
@@ -193,9 +207,13 @@ class CreateCarrental:
                 category = site.find_category_by_id(int(self.category_id))
 
                 carrental = site.create_carrental('record', name, category)
+
+                carrental.observers.append(email_notifier)
+                carrental.observers.append(sms_notifier)
+
                 site.carrentals.append(carrental)
 
-            return '200 OK', render('carrental_list.html',
+            return '200 OK', render('carrental-list.html',
                                     objects_list=category.carrentals,
                                     name=category.name,
                                     id=category.id)
@@ -206,8 +224,8 @@ class CreateCarrental:
                 category = site.find_category_by_id(int(self.category_id))
 
                 return '200 OK', render('create_carrental.html',
-                                    name=category.name,
-                                    id=category.id)
+                                        name=category.name,
+                                        id=category.id)
             except KeyError:
                 return '200 OK', 'No categories have been added yet'
 
@@ -238,16 +256,34 @@ class CreateCategory:
             return '200 OK', render('index.html', objects_list=site.categories)
         else:
             categories = site.categories
-            return '200 OK', render('create_category.html',
+            return '200 OK', render('create-category.html',
                                     categories=categories)
 
 
-# контроллер - список категорий
-@AppRoute(routes=routes, url='/category-list/')
-class CategoryList:
+# контроллер - список категорий отелей
+@AppRoute(routes=routes, url='/category_list_hotel/')
+class CategoryListHotel:
     def __call__(self, request):
         logger.log('Список категорий')
         return '200 OK', render('category_list_hotel.html',
+                                objects_list=site.categories)
+
+
+# контроллер - список категорий авиабилетов
+@AppRoute(routes=routes, url='/category_list_flight/')
+class CategoryListFlight:
+    def __call__(self, request):
+        logger.log('Список категорий')
+        return '200 OK', render('category_list_flight',
+                                objects_list=site.categories)
+
+
+# контроллер - список категорий каршеринга
+@AppRoute(routes=routes, url='/category_list_ carrental/')
+class CategoryListCarrental:
+    def __call__(self, request):
+        logger.log('Список категорий')
+        return '200 OK', render('category_list_ carrental',
                                 objects_list=site.categories)
 
 
@@ -267,7 +303,7 @@ class CopyHotel:
                 new_hotel.name = new_name
                 site.hotels.append(new_hotel)
 
-            return '200 OK', render('hotel_list.html',
+            return '200 OK', render('hotels-list.html',
                                     objects_list=site.hotels,
                                     name=new_hotel.category.name)
         except KeyError:
@@ -290,7 +326,7 @@ class CopyFlight:
                 new_flight.name = new_name
                 site.flights.append(new_flight)
 
-            return '200 OK', render('flight_list.html',
+            return '200 OK', render('flights-list.html',
                                     objects_list=site.flights,
                                     name=new_flight.category.name)
         except KeyError:
@@ -313,8 +349,56 @@ class CopyCarrental:
                 new_carrental.name = new_name
                 site.carrentals.append(new_carrental)
 
-            return '200 OK', render('carrental_list.html',
+            return '200 OK', render('carrental-list.html',
                                     objects_list=site.carrentals,
                                     name=new_carrental.category.name)
         except KeyError:
             return '200 OK', 'No carrentals have been added yet'
+
+
+@AppRoute(routes=routes, url='/client-list/')
+class ClientListView(ListView):
+    template_name = 'client-list.html'
+
+    def get_queryset(self):
+        mapper = MapperRegistry.get_current_mapper('client')
+        return mapper.all()
+
+
+@AppRoute(routes=routes, url='/create-client/')
+class ClientCreateView(CreateView):
+    template_name = 'create_client.html'
+
+    def create_obj(self, data: dict):
+        name = data['name']
+        name = site.decode_value(name)
+        new_obj = site.create_user('client', name)
+        site.clients.append(new_obj)
+        new_obj.mark_new()
+        UnitOfWork.get_current().commit()
+
+@AppRoute(routes=routes, url='/add-client/')
+class AddClientByServiceCreateView(CreateView):
+    template_name = 'add_client.html'
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context['services'] = site.services
+        context['clients'] = site.clients
+        return context
+
+    def create_obj(self, data: dict):
+        service_name = data['service_name']
+        service_name = site.decode_value(service_name)
+        service = site.get_service(service_name)
+        client_name = data['client_name']
+        client_name = site.decode_value(client_name)
+        client = site.get_client(client_name)
+        service.add_client(client)
+
+
+@AppRoute(routes=routes, url='/api/')
+class ServiceApi:
+    @Debug(name='ServiceApi')
+    def __call__(self, request):
+        return '200 OK', BaseSerializer(site.services).save()

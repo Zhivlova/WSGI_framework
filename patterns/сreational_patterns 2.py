@@ -1,33 +1,23 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from sqlite3 import connect
 from quopri import decodestring
-from patterns.behavioral_patterns import FileWriter, Booking
-from architectural_system_pattern import DomainObject
-
+from behavioral_patterns import FileWriter, Booking
 
 """"
 Создание пользователей сайта
 """
 
-
 # абстрактный пользователь
 class User:
-    def __init__(self, name):
-        self.name = name
-
+    pass
 
 # администратор
 class Admin(User):
     pass
 
-
 # клиент
-class Client(User, DomainObject):
-    def __init__(self, name):
-        self.courses = []
-        super().__init__(name)
-
+class Client(User):
+    pass
 
 class UserFactory:
     types = {
@@ -35,7 +25,7 @@ class UserFactory:
         'client': Client
     }
 
-    # порождающий паттерн Фабричный метод
+# порождающий паттерн Фабричный метод
     @classmethod
     def create(cls, type_):
         return cls.types[type_]()
@@ -45,21 +35,26 @@ class UserFactory:
 Создание прототипов услуг
 """
 
+# Семейство классов для Hotel
+class HotelBooking:  # бронирование отеля
+    @staticmethod
+    def book():
+        print('Hotel book work')
+
 
 # порождающий паттерн Прототип
-class ServicePrototype:
-    # прототип услуги
+class HotelPrototype:
+    # прототип гостиницы
     def clone(self):
         return deepcopy(self)
 
 
-# абстрактная услуга
-class Service(ServicePrototype, Booking):
+class Hotel(HotelPrototype, Booking):
 
     def __init__(self, name, category):
         self.name = name
         self.category = category
-        self.category.services.append(self)
+        self.category.hotels.append(self)
         self.clients = []
         super().__init__()
 
@@ -72,16 +67,9 @@ class Service(ServicePrototype, Booking):
         self.notify()
 
 
-# Семейство классов для Hotel
-class HotelBooking:  # бронирование отеля
-    @staticmethod
-    def book():
-        print('Hotel book work')
-
 
 class HotelСancellater:  # аннуляция отеля
     pass
-
 
 class HotelСhanger:  # изменение брони
     pass
@@ -93,10 +81,30 @@ class FlightBooking:  # бронирование абиабилета
     def book():
         print('Flight book work')
 
+class FlightPrototype:
+    # прототип авиаперелета
+    def clone(self):
+        return deepcopy(self)
+
+class Flight(FlightPrototype, Booking):
+
+    def __init__(self, name, category):
+        self.name = name
+        self.category = category
+        self.category.flights.append(self)
+        self.clients = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.clients[item]
+
+    def add_client(self, client: Client):
+        self.clients.append(client)
+        client.services.append(self)
+        self.notify()
 
 class FlightСancellater:  # аннуляция абиабилета
     pass
-
 
 class FlightСhanger:  # изменение брони
     pass
@@ -108,10 +116,30 @@ class CarrentalBooking:  # бронирование каршеринга
     def book():
         print('Carrental book work')
 
+class CarrentalPrototype:
+    # прототип каршеринга
+    def clone(self):
+        return deepcopy(self)
+
+class Carrental(CarrentalPrototype, Booking):
+
+    def __init__(self, name, category):
+        self.name = name
+        self.category = category
+        self.category.carrentals.append(self)
+        self.clients = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.clients[item]
+
+    def add_client(self, client: Client):
+        self.clients.append(client)
+        client.services.append(self)
+        self.notify()
 
 class CarrentalСancellater:  # аннуляция каршеринга
     pass
-
 
 class CarrentalСhanger:  # изменение брони
     pass
@@ -132,6 +160,18 @@ class AbstractFactory(ABC):
         pass
 
     @abstractmethod
+    def create_hotel(self):
+        pass
+
+    @abstractmethod
+    def create_flight(self):
+        pass
+
+    @abstractmethod
+    def create_carrental(self):
+        pass
+
+    @abstractmethod
     def create_cancellater(self):
         pass
 
@@ -144,6 +184,9 @@ class HotelFactory(AbstractFactory):
     def create_booking(self):
         return HotelBooking()
 
+    def create_hotel(self):
+        return
+
     def create_cancellater(self):
         return HotelСancellater()
 
@@ -155,6 +198,9 @@ class FlightFactory(AbstractFactory):
     def create_booking(self):
         return FlightBooking()
 
+    def create_flight(self):
+        return
+
     def create_cancellater(self):
         return FlightСancellater()
 
@@ -165,6 +211,9 @@ class FlightFactory(AbstractFactory):
 class CarrentalFactory(AbstractFactory):
     def create_booking(self):
         return CarrentalBooking()
+
+    def create_carrental(self):
+        return
 
     def create_cancellater(self):
         return CarrentalСancellater()
@@ -199,11 +248,10 @@ class Category:
 Основной интерфейс проекта
 """
 
-
 class Engine:
     def __init__(self):
         self.admins = []
-        self.clients = []
+        self.users = []
         self.services = []
         self.categories = []
 
@@ -273,96 +321,3 @@ class Logger(metaclass=SingletonByName):
     def log(self, text):
         text = f'log---> {text}'
         self.writer.write(text)
-
-
-class ClientMapper:
-
-    def __init__(self, connection):
-        self.connection = connection
-        self.cursor = connection.cursor()
-        self.tablename = 'client'
-
-    def all(self):
-        statement = f'SELECT * from {self.tablename}'
-        self.cursor.execute(statement)
-        result = []
-        for item in self.cursor.fetchall():
-            id, name = item
-            client = Client(name)
-            client.id = id
-            result.append(client)
-        return result
-
-    def find_by_id(self, id):
-        statement = f"SELECT id, name FROM {self.tablename} WHERE id=?"
-        self.cursor.execute(statement, (id,))
-        result = self.cursor.fetchone()
-        if result:
-            return Client(*result)
-        else:
-            raise RecordNotFoundException(f'record with id={id} not found')
-
-    def insert(self, obj):
-        statement = f"INSERT INTO {self.tablename} (name) VALUES (?)"
-        self.cursor.execute(statement, (obj.name,))
-        try:
-            self.connection.commit()
-        except Exception as e:
-            raise DbCommitException(e.args)
-
-    def update(self, obj):
-        statement = f"UPDATE {self.tablename} SET name=? WHERE id=?"
-
-        self.cursor.execute(statement, (obj.name, obj.id))
-        try:
-            self.connection.commit()
-        except Exception as e:
-            raise DbUpdateException(e.args)
-
-    def delete(self, obj):
-        statement = f"DELETE FROM {self.tablename} WHERE id=?"
-        self.cursor.execute(statement, (obj.id,))
-        try:
-            self.connection.commit()
-        except Exception as e:
-            raise DbDeleteException(e.args)
-
-
-connection = connect('patterns.sqlite')
-
-
-# архитектурный системный паттерн - Data Mapper
-class MapperRegistry:
-    mappers = {
-        'client': ClientMapper,
-        # 'category': CategoryMapper
-    }
-
-    @staticmethod
-    def get_mapper(obj):
-        if isinstance(obj, Client):
-            return ClientMapper(connection)
-
-    @staticmethod
-    def get_current_mapper(name):
-        return MapperRegistry.mappers[name](connection)
-
-
-class DbCommitException(Exception):
-    def __init__(self, message):
-        super().__init__(f'Db commit error: {message}')
-
-
-class DbUpdateException(Exception):
-    def __init__(self, message):
-        super().__init__(f'Db update error: {message}')
-
-
-class DbDeleteException(Exception):
-    def __init__(self, message):
-        super().__init__(f'Db delete error: {message}')
-
-
-class RecordNotFoundException(Exception):
-    def __init__(self, message):
-        super().__init__(f'Record not found: {message}')

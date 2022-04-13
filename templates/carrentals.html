@@ -13,11 +13,11 @@
 		<a href="/create-category/">Создать новую категорию</a>
 	</div>
 	<div>
-		<h1>Список существующих категорий</h1>
+		<h4>Список существующих категорий</h4>
         {% for item in objects_list %}
         <li>
             {{item.name}} <span>Количество автомобилей: {{item.carrental_count()}}</span>
-			<a href="/carrentals-list/?id={{item.id}}">Показать автомобили</a>
+			<a href="/carrental-list/?id={{item.id}}">Показать автомобили</a>
         </li>
         {% endfor %}
 	</div>

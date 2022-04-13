@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}
+Создание услуги
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-menu.html" %}
+{% endblock %}
+{% block body %}
+	<div>
+		<li>
+			<a href="/client-list/">Список клиентов</a>
+		</li>
+		<li>
+			<a href="/create-client/">Создать клиента</a>
+		</li>
+	</div>
+    <h1>Добавление клиента</h1>
+    <form method="post">
+        <select size="3" name="service_name">
+            {% for item in services %}
+            <option value="{{item.name}}">{{item.name}}</option>
+            {% endfor %}
+        </select>
+        <select size="3" name="client_name">
+            {% for item in clients %}
+            <option value="{{item.name}}">{{item.name}}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Записать</button>
+    </form>
+{% endblock %}
+{% block footer %}
+	{% include "inc-footer.html" %}
+{% endblock %}
